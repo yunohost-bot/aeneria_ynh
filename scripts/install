@@ -15,24 +15,20 @@ ynh_app_setting_set --key=deskey --value=$deskey
 #=================================================
 ynh_script_progression "Setting up source files..."
 
-# Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$install_dir"
 
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R $app:www-data "$install_dir"
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R 750 "$install_dir"
+chown -R $app:www-data "$install_dir"
+chmod -R 750 "$install_dir"
+
 #=================================================
 # SYSTEM CONFIGURATION
 #=================================================
 ynh_script_progression "Adding system configurations related to $app..."
 
-# Create a dedicated NGINX config
 ynh_config_add_nginx
 
-# Create a dedicated PHP-FPM config
 ynh_config_add_phpfpm
 
-#=================================================
-# SPECIFIC SETUP
 #=================================================
 # CONFIGURE AENERIA
 #=================================================
@@ -40,15 +36,13 @@ ynh_script_progression "Configuring $app..."
 
 ynh_config_add --template=".env" --destination="$install_dir/.env"
 
-# Restrict rights to aeneria user only
-#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 600 "$install_dir/.env"
+chmod 600 "$install_dir/.env"
 
 #=================================================
 # INSTALL AENERIA
 #=================================================
-ynh_script_progression "Installing aeneria..."
+ynh_script_progression "Installing $app..."
 
-# Install aeneria
 pushd $install_dir
   ynh_exec_as_app php$php_version bin/console aeneria:install "$app" -n
   # Create admin user
@@ -66,8 +60,6 @@ ynh_script_progression "Setuping a cron..."
 generate_random_minutes_hour
 
 ynh_config_add --template="aeneria.cron" --destination="/etc/cron.d/$app"
-#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown root: "/etc/cron.d/$app"
-#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 644 "/etc/cron.d/$app"
 
 #=================================================
 # END OF SCRIPT
